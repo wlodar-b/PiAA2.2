@@ -1,328 +1,335 @@
-#include "AIPlayer.h"
-#include "Board.h"
+#include "AIPlayer.hpp"
 
 #include <algorithm>
-#include <chrono>
-#include <limits>
 #include <random>
-#include <vector>
-#include <cmath>
 
-// ---------------------------------------------------------------------------
-// Constants
-// ---------------------------------------------------------------------------
+namespace ttt {
 
-static constexpr int SCORE_WIN  =  10000;
-static constexpr int SCORE_LOSS = -10000;
-
-// ---------------------------------------------------------------------------
+// ═════════════════════════════════════════════════════════════════════════════
 // Construction
-// ---------------------------------------------------------------------------
+// ═════════════════════════════════════════════════════════════════════════════
 
-AIPlayer::AIPlayer(char symbol, char opponentSymbol, Difficulty difficulty)
-    : Player(symbol)
-    , opponentSymbol_(opponentSymbol)
-    , difficulty_(difficulty)
-{
-}
+AIPlayer::AIPlayer(int maxDepth)
+    : maxDepth_(maxDepth)
+{}
 
-// ---------------------------------------------------------------------------
-// Public interface
-// ---------------------------------------------------------------------------
+// ═════════════════════════════════════════════════════════════════════════════
+// chooseMove — root search
+// ═════════════════════════════════════════════════════════════════════════════
 
-std::pair<int, int> AIPlayer::getMove(const Board& board)
-{
-    const auto moves = board.getAvailableMoves();
-    if (moves.empty()) {
-        return {-1, -1};  // Should never happen in a well-formed game.
+Move AIPlayer::chooseMove(const Board& board, const GameRules& rules) {
+    // Empty board → opening move
+    if (board.filledCount() == 0) {
+        return openingMove(board);
     }
 
-    // -----------------------------------------------------------------------
-    // EASY: pick a random legal move.
-    // -----------------------------------------------------------------------
-    if (difficulty_ == Difficulty::EASY) {
-        static std::mt19937 rng(
-            static_cast<unsigned>(
-                std::chrono::steady_clock::now().time_since_epoch().count()));
-        std::uniform_int_distribution<int> dist(0,
-            static_cast<int>(moves.size()) - 1);
-        return moves[dist(rng)];
-    }
+    auto candidates = candidateMoves(board);
+    if (candidates.empty()) return {};
 
-    // -----------------------------------------------------------------------
-    // MEDIUM / HARD: Minimax with alpha-beta pruning.
-    // -----------------------------------------------------------------------
-    const int maxDepth = getMaxDepth(board.getSize());
+    const int depthLim = effectiveDepth(board, static_cast<int>(candidates.size()));
 
-    // We need a mutable copy of the board for search.
-    Board searchBoard = board;
+    int bestScore = -kInf;
+    std::vector<Move> bestMoves;
 
-    int bestScore = std::numeric_limits<int>::min();
-    std::vector<std::pair<int, int>> bestMoves;  // Track ties for randomness.
+    // We need a mutable copy for the search.
+    Board scratch = board;
 
-    for (const auto& [r, c] : moves) {
-        searchBoard.makeMove(r, c, symbol_);
-        const int score = minimax(searchBoard, maxDepth - 1, false,
-                                  std::numeric_limits<int>::min(),
-                                  std::numeric_limits<int>::max());
-        searchBoard.undoMove(r, c);
+    for (const auto& move : candidates) {
+        scratch.set(move.row, move.col, mark_);
+
+        int score;
+
+        // Check immediate win
+        if (rules.hasWonAt(scratch, move.row, move.col)) {
+            score = kWinScore;
+        } else if (scratch.isFull()) {
+            score = 0;
+        } else {
+            // IMPORTANT: use full window (-kInf, kInf) for EACH root move
+            // so that all equally-good moves are identified for randomization.
+            score = minimax(scratch, rules, 1, -kInf, kInf,
+                            opponent(mark_), depthLim);
+        }
+
+        scratch.set(move.row, move.col, Cell::Empty);
 
         if (score > bestScore) {
             bestScore = score;
             bestMoves.clear();
-            bestMoves.emplace_back(r, c);
+            bestMoves.push_back(move);
         } else if (score == bestScore) {
-            bestMoves.emplace_back(r, c);
+            bestMoves.push_back(move);
         }
     }
 
-    // If multiple moves share the best score, pick one at random.
-    if (bestMoves.size() == 1) {
-        return bestMoves[0];
-    }
-    static std::mt19937 rng(
-        static_cast<unsigned>(
-            std::chrono::steady_clock::now().time_since_epoch().count()));
-    std::uniform_int_distribution<int> dist(0,
-        static_cast<int>(bestMoves.size()) - 1);
-    return bestMoves[dist(rng)];
+    // Pick randomly among equally-good moves.
+    static thread_local std::mt19937 rng{std::random_device{}()};
+    std::uniform_int_distribution<int> dist(0, static_cast<int>(bestMoves.size()) - 1);
+    return bestMoves[static_cast<std::size_t>(dist(rng))];
 }
 
-bool AIPlayer::isHuman() const
-{
-    return false;
-}
+// ═════════════════════════════════════════════════════════════════════════════
+// minimax with alpha-beta pruning
+// ═════════════════════════════════════════════════════════════════════════════
 
-// ---------------------------------------------------------------------------
-// Minimax with alpha-beta pruning
-// ---------------------------------------------------------------------------
+int AIPlayer::minimax(Board& board, const GameRules& rules,
+                      int depth, int alpha, int beta,
+                      Cell toMove, int depthLimit) const {
+    if (board.isFull()) return 0;
+    if (depth >= depthLimit) return evaluate(board, rules);
 
-int AIPlayer::minimax(Board& board, int depth, bool isMaximizing,
-                      int alpha, int beta)
-{
-    // Terminal checks: win, loss, draw, or depth limit.
-    if (board.checkWin(symbol_)) {
-        // Prefer faster wins (add depth bonus so shallower wins score higher).
-        return SCORE_WIN + depth;
-    }
-    if (board.checkWin(opponentSymbol_)) {
-        return SCORE_LOSS - depth;
-    }
-    if (board.isFull() || depth == 0) {
-        return evaluate(board);
-    }
+    const bool maximizing = (toMove == mark_);
+    auto candidates = candidateMoves(board);
 
-    const auto moves = board.getAvailableMoves();
+    if (maximizing) {
+        int best = -kInf;
+        for (const auto& move : candidates) {
+            board.set(move.row, move.col, toMove);
 
-    if (isMaximizing) {
-        int maxEval = std::numeric_limits<int>::min();
-        for (const auto& [r, c] : moves) {
-            board.makeMove(r, c, symbol_);
-            const int eval = minimax(board, depth - 1, false, alpha, beta);
-            board.undoMove(r, c);
+            int score;
+            if (rules.hasWonAt(board, move.row, move.col)) {
+                score = kWinScore - depth;
+            } else {
+                score = minimax(board, rules, depth + 1, alpha, beta,
+                                opponent(toMove), depthLimit);
+            }
 
-            maxEval = std::max(maxEval, eval);
-            alpha   = std::max(alpha, eval);
-            if (beta <= alpha) break;  // Beta cutoff.
+            board.set(move.row, move.col, Cell::Empty);
+
+            best = std::max(best, score);
+            alpha = std::max(alpha, best);
+            if (alpha >= beta) break;
         }
-        return maxEval;
+        return best;
     } else {
-        int minEval = std::numeric_limits<int>::max();
-        for (const auto& [r, c] : moves) {
-            board.makeMove(r, c, opponentSymbol_);
-            const int eval = minimax(board, depth - 1, true, alpha, beta);
-            board.undoMove(r, c);
+        int best = kInf;
+        for (const auto& move : candidates) {
+            board.set(move.row, move.col, toMove);
 
-            minEval = std::min(minEval, eval);
-            beta    = std::min(beta, eval);
-            if (beta <= alpha) break;  // Alpha cutoff.
+            int score;
+            if (rules.hasWonAt(board, move.row, move.col)) {
+                score = -(kWinScore - depth);
+            } else {
+                score = minimax(board, rules, depth + 1, alpha, beta,
+                                opponent(toMove), depthLimit);
+            }
+
+            board.set(move.row, move.col, Cell::Empty);
+
+            best = std::min(best, score);
+            beta = std::min(beta, best);
+            if (alpha >= beta) break;
         }
-        return minEval;
+        return best;
     }
 }
 
-// ---------------------------------------------------------------------------
-// Heuristic evaluation
-// ---------------------------------------------------------------------------
+// ═════════════════════════════════════════════════════════════════════════════
+// evaluate — heuristic board evaluation
+// ═════════════════════════════════════════════════════════════════════════════
 
-int AIPlayer::evaluate(const Board& board) const
-{
-    // Quick check for terminal states.
-    if (board.checkWin(symbol_))         return SCORE_WIN;
-    if (board.checkWin(opponentSymbol_)) return SCORE_LOSS;
+int AIPlayer::evaluate(const Board& board, const GameRules& rules) const {
+    const int n = board.size();
+    const int wl = rules.winLength();
+    const Cell mine   = mark_;
+    const Cell theirs = opponent(mark_);
 
-    const int size = board.getSize();
-    const int winLen = board.getWinCondition();
     int score = 0;
 
-    // -----------------------------------------------------------------------
-    // 1. Center preference — positions near the center are strategically
-    //    stronger.  The weight decreases with distance from the centre.
-    // -----------------------------------------------------------------------
-    const float center = static_cast<float>(size - 1) / 2.0f;
-    for (int r = 0; r < size; ++r) {
-        for (int c = 0; c < size; ++c) {
-            const char cell = board.getCell(r, c);
-            if (cell == '.') continue;
+    // Scan all lines in all 4 directions.
+    // For directions (0,1), (1,0), (1,1), (1,-1), we iterate over
+    // starting positions and slide a window of size winLength.
 
-            // Manhattan distance from center, normalized to [0, 1].
-            const float dist = (std::abs(r - center) + std::abs(c - center))
-                             / static_cast<float>(size);
-            const int bonus = static_cast<int>((1.0f - dist) * 3);
-
-            if (cell == symbol_) {
-                score += bonus;
-            } else {
-                score -= bonus;
+    // Direction (0,1): horizontal — each row
+    for (int r = 0; r < n; ++r) {
+        for (int c = 0; c <= n - wl; ++c) {
+            int myCount = 0, theirCount = 0;
+            for (int k = 0; k < wl; ++k) {
+                Cell cell = board.at(r, c + k);
+                if (cell == mine) ++myCount;
+                else if (cell == theirs) ++theirCount;
             }
+            if (myCount > 0 && theirCount == 0)
+                score += windowValue(myCount);
+            else if (theirCount > 0 && myCount == 0)
+                score -= windowValue(theirCount);
         }
     }
 
-    // -----------------------------------------------------------------------
-    // 2. Evaluate sliding windows of length winCondition along every line.
-    //    Directions: horizontal, vertical, diagonal, anti-diagonal.
-    // -----------------------------------------------------------------------
-    auto evaluateWindows = [&](int startR, int startC, int dR, int dC,
-                               int lineLength)
-    {
-        // Build the full line.
-        std::vector<char> line;
-        line.reserve(lineLength);
-        for (int i = 0; i < lineLength; ++i) {
-            line.push_back(board.getCell(startR + i * dR,
-                                         startC + i * dC));
-        }
-
-        // Slide a window of size winLen across the line.
-        for (int i = 0; i <= lineLength - winLen; ++i) {
-            std::vector<char> window(line.begin() + i,
-                                     line.begin() + i + winLen);
-            score += scoreWindow(window);
-        }
-    };
-
-    // Horizontal lines.
-    for (int r = 0; r < size; ++r) {
-        evaluateWindows(r, 0, 0, 1, size);
-    }
-
-    // Vertical lines.
-    for (int c = 0; c < size; ++c) {
-        evaluateWindows(0, c, 1, 0, size);
-    }
-
-    // Diagonals (top-left to bottom-right).
-    // Main diagonal and those above it.
-    for (int c = 0; c < size; ++c) {
-        const int len = std::min(size, size - c);
-        if (len >= winLen) {
-            evaluateWindows(0, c, 1, 1, len);
-        }
-    }
-    // Diagonals below the main diagonal.
-    for (int r = 1; r < size; ++r) {
-        const int len = std::min(size, size - r);
-        if (len >= winLen) {
-            evaluateWindows(r, 0, 1, 1, len);
+    // Direction (1,0): vertical — each column
+    for (int c = 0; c < n; ++c) {
+        for (int r = 0; r <= n - wl; ++r) {
+            int myCount = 0, theirCount = 0;
+            for (int k = 0; k < wl; ++k) {
+                Cell cell = board.at(r + k, c);
+                if (cell == mine) ++myCount;
+                else if (cell == theirs) ++theirCount;
+            }
+            if (myCount > 0 && theirCount == 0)
+                score += windowValue(myCount);
+            else if (theirCount > 0 && myCount == 0)
+                score -= windowValue(theirCount);
         }
     }
 
-    // Anti-diagonals (top-right to bottom-left).
-    for (int c = 0; c < size; ++c) {
-        const int len = std::min(c + 1, size);
-        if (len >= winLen) {
-            evaluateWindows(0, c, 1, -1, len);
+    // Direction (1,1): diagonal ↘
+    for (int r = 0; r <= n - wl; ++r) {
+        for (int c = 0; c <= n - wl; ++c) {
+            int myCount = 0, theirCount = 0;
+            for (int k = 0; k < wl; ++k) {
+                Cell cell = board.at(r + k, c + k);
+                if (cell == mine) ++myCount;
+                else if (cell == theirs) ++theirCount;
+            }
+            if (myCount > 0 && theirCount == 0)
+                score += windowValue(myCount);
+            else if (theirCount > 0 && myCount == 0)
+                score -= windowValue(theirCount);
         }
     }
-    for (int r = 1; r < size; ++r) {
-        const int len = std::min(size, size - r);
-        if (len >= winLen) {
-            evaluateWindows(r, size - 1, 1, -1, len);
+
+    // Direction (1,-1): anti-diagonal ↙
+    for (int r = 0; r <= n - wl; ++r) {
+        for (int c = wl - 1; c < n; ++c) {
+            int myCount = 0, theirCount = 0;
+            for (int k = 0; k < wl; ++k) {
+                Cell cell = board.at(r + k, c - k);
+                if (cell == mine) ++myCount;
+                else if (cell == theirs) ++theirCount;
+            }
+            if (myCount > 0 && theirCount == 0)
+                score += windowValue(myCount);
+            else if (theirCount > 0 && myCount == 0)
+                score -= windowValue(theirCount);
         }
     }
 
     return score;
 }
 
-// ---------------------------------------------------------------------------
-// Window scoring
-// ---------------------------------------------------------------------------
-
-int AIPlayer::scoreWindow(const std::vector<char>& window) const
-{
-    const int winLen = static_cast<int>(window.size());
-
-    int aiCount  = 0;
-    int oppCount = 0;
-    int emptyCount = 0;
-
-    for (const char c : window) {
-        if (c == symbol_)         ++aiCount;
-        else if (c == opponentSymbol_) ++oppCount;
-        else                           ++emptyCount;
+int AIPlayer::windowValue(int count) const {
+    if (count <= 0) return 0;
+    int value = 1;
+    for (int i = 1; i < count; ++i) {
+        value *= 10;
+        if (value >= 100000) return 100000;
     }
-
-    // If both players occupy the same window, it's contested — no score.
-    if (aiCount > 0 && oppCount > 0) {
-        return 0;
-    }
-
-    // -----------------------------------------------------------------------
-    // Scoring weights — longer sequences receive exponentially more weight.
-    // "Open-ended" windows (those with remaining empty cells) score higher
-    // than blocked ones because they have more potential.
-    // -----------------------------------------------------------------------
-    int windowScore = 0;
-
-    if (aiCount > 0) {
-        // AI sequences.
-        if (aiCount == winLen) {
-            windowScore = SCORE_WIN;  // Complete winning line.
-        } else if (aiCount == winLen - 1 && emptyCount == 1) {
-            windowScore = 500;  // One move away from winning.
-        } else if (aiCount == winLen - 2 && emptyCount == 2) {
-            windowScore = 50;   // Two moves away — good potential.
-        } else if (aiCount >= 1) {
-            windowScore = aiCount * 5;  // General presence bonus.
-        }
-    } else if (oppCount > 0) {
-        // Opponent sequences (mirror with negative weight).
-        if (oppCount == winLen) {
-            windowScore = SCORE_LOSS;
-        } else if (oppCount == winLen - 1 && emptyCount == 1) {
-            windowScore = -450;  // Slightly less weight than AI's threat
-                                 // so the AI prefers winning over blocking.
-        } else if (oppCount == winLen - 2 && emptyCount == 2) {
-            windowScore = -40;
-        } else if (oppCount >= 1) {
-            windowScore = -(oppCount * 5);
-        }
-    }
-
-    return windowScore;
+    return value;
 }
 
-// ---------------------------------------------------------------------------
-// Depth configuration
-// ---------------------------------------------------------------------------
+// ═════════════════════════════════════════════════════════════════════════════
+// candidateMoves
+// ═════════════════════════════════════════════════════════════════════════════
 
-int AIPlayer::getMaxDepth(int boardSize) const
-{
-    switch (difficulty_) {
-        case Difficulty::EASY:
-            return 0;  // Not used (random moves), but defined for safety.
+std::vector<Move> AIPlayer::candidateMoves(const Board& board) const {
+    const int n = board.size();
+    const int empties = n * n - board.filledCount();
 
-        case Difficulty::MEDIUM:
-            return 4;
+    // Empty board → center only
+    if (empties == n * n) {
+        return {{n / 2, n / 2}};
+    }
 
-        case Difficulty::HARD:
-            // For small boards, search the entire tree for perfect play.
-            if (boardSize <= 4) {
-                return boardSize * boardSize;  // Effectively unlimited.
+    // Endgame (≤9 empties) → return ALL empty cells for exhaustive search
+    if (empties <= 9) {
+        std::vector<Move> moves;
+        moves.reserve(static_cast<std::size_t>(empties));
+        for (int r = 0; r < n; ++r) {
+            for (int c = 0; c < n; ++c) {
+                if (board.isEmpty(r, c)) {
+                    moves.push_back({r, c});
+                }
             }
-            return 8;
-
-        default:
-            return 4;
+        }
+        return moves;
     }
+
+    // Otherwise → only cells adjacent to existing marks
+    std::vector<Move> moves;
+    for (int r = 0; r < n; ++r) {
+        for (int c = 0; c < n; ++c) {
+            if (board.isEmpty(r, c) && hasNeighbor(board, r, c)) {
+                moves.push_back({r, c});
+            }
+        }
+    }
+    return moves;
 }
+
+bool AIPlayer::hasNeighbor(const Board& board, int r, int c) const {
+    static constexpr int kNeighborDirs[8][2] = {
+        {-1, -1}, {-1, 0}, {-1, 1},
+        { 0, -1},          { 0, 1},
+        { 1, -1}, { 1, 0}, { 1, 1}
+    };
+    for (const auto& d : kNeighborDirs) {
+        int nr = r + d[0];
+        int nc = c + d[1];
+        if (board.inBounds(nr, nc) && !board.isEmpty(nr, nc)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// effectiveDepth
+// ═════════════════════════════════════════════════════════════════════════════
+
+int AIPlayer::effectiveDepth(const Board& board, int branching) const {
+    const int n = board.size();
+    const int empties = n * n - board.filledCount();
+
+    // Endgame: search as deep as possible
+    if (empties <= 9) {
+        return std::min(empties, maxDepth_);
+    }
+
+    int cap;
+    if (branching <= 6)       cap = 6;
+    else if (branching <= 12) cap = 4;
+    else if (branching <= 24) cap = 3;
+    else                      cap = 2;
+
+    return std::min(maxDepth_, cap);
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// openingMove
+// ═════════════════════════════════════════════════════════════════════════════
+
+Move AIPlayer::openingMove(const Board& board) const {
+    const int n = board.size();
+    const int center = n / 2;
+
+    static thread_local std::mt19937 rng{std::random_device{}()};
+
+    // Hard difficulty → always center
+    if (maxDepth_ >= 7) {
+        return {center, center};
+    }
+
+    // Easy difficulty → random any cell
+    if (maxDepth_ <= 1) {
+        std::uniform_int_distribution<int> dist(0, n * n - 1);
+        int idx = dist(rng);
+        return {idx / n, idx % n};
+    }
+
+    // Medium difficulty → random from center + 8 neighbors
+    std::vector<Move> options;
+    for (int dr = -1; dr <= 1; ++dr) {
+        for (int dc = -1; dc <= 1; ++dc) {
+            int r = center + dr;
+            int c = center + dc;
+            if (board.inBounds(r, c)) {
+                options.push_back({r, c});
+            }
+        }
+    }
+
+    std::uniform_int_distribution<int> dist(0, static_cast<int>(options.size()) - 1);
+    return options[static_cast<std::size_t>(dist(rng))];
+}
+
+} // namespace ttt

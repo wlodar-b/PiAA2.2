@@ -6,8 +6,7 @@
  * events, getIf<> pattern, font constructor, etc.).
  */
 
-#include "SFMLRenderer.h"
-#include "Board.h"
+#include "SFMLRenderer.hpp"
 
 #include <SFML/Graphics.hpp>
 #include <algorithm>
@@ -31,136 +30,39 @@ const sf::Color SFMLRenderer::kPanelBg   {0x16, 0x21, 0x3e};
 // Construction
 // ═══════════════════════════════════════════════════════════════════════════
 
-SFMLRenderer::SFMLRenderer(int boardSize, sf::Font& font)
+SFMLRenderer::SFMLRenderer(const ttt::Game& game, sf::Font& font)
     : window_(sf::VideoMode(sf::Vector2u{WINDOW_W, WINDOW_H}),
               "Tic-Tac-Toe",
               sf::Style::Default,
               sf::State::Windowed)
     , font_(font)
-    , boardSize_(boardSize)
+    , game_(&game)
 {
     window_.setFramerateLimit(60);
     recalculateLayout();
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Layout calculation
+// Public interface
 // ═══════════════════════════════════════════════════════════════════════════
 
-void SFMLRenderer::recalculateLayout() {
-    // The board is a square that fits in the left ~65 % of the window,
-    // with some padding.  The info panel takes the remaining right side.
-    constexpr float kPad = 30.f;
-
-    const float availW = WINDOW_W * 0.62f - 2.f * kPad;
-    const float availH = WINDOW_H        - 2.f * kPad;
-    boardPixelSize_    = std::min(availW, availH);
-    cellSize_          = boardPixelSize_ / static_cast<float>(boardSize_);
-
-    // Centre the board vertically in the left region.
-    boardOriginX_ = kPad;
-    boardOriginY_ = (WINDOW_H - boardPixelSize_) / 2.f;
-
-    // Panel occupies the remaining space.
-    panelX_ = boardOriginX_ + boardPixelSize_ + kPad;
-    panelW_ = WINDOW_W - panelX_ - kPad;
+void SFMLRenderer::setGame(const ttt::Game& game) {
+    game_ = &game;
+    recalculateLayout();
 }
-
-// ═══════════════════════════════════════════════════════════════════════════
-// Renderer interface: render
-// ═══════════════════════════════════════════════════════════════════════════
-
-void SFMLRenderer::render(const Board& board) {
-    // Auto-detect whose turn it is from the board state.
-    inferCurrentPlayer(board);
-
-    window_.clear(kBackground);
-    drawBoard(board);
-    drawInfoPanel(board);
-
-    if (!resultMessage_.empty()) {
-        drawResultOverlay();
-    }
-
-    window_.display();
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// Renderer interface: getHumanMove
-// ═══════════════════════════════════════════════════════════════════════════
-
-std::pair<int, int> SFMLRenderer::getHumanMove(const Board& board) {
-    inferCurrentPlayer(board);
-
-    while (window_.isOpen()) {
-        // ── Process events ──────────────────────────────────────────
-        while (const auto event = window_.pollEvent()) {
-            if (event->is<sf::Event::Closed>()) {
-                window_.close();
-                windowClosed_ = true;
-                return {-1, -1};
-            }
-
-            // Mouse click — check for cell selection.
-            if (const auto* mb = event->getIf<sf::Event::MouseButtonPressed>()) {
-                // Check "New Game" button first.
-                if (isInsideNewGameButton(mb->position)) {
-                    newGameRequested_ = true;
-                    return {-1, -1};
-                }
-
-                auto [row, col] = pixelToCell(mb->position);
-                if (row >= 0 && col >= 0 && board.getCell(row, col) == '.') {
-                    return {row, col};
-                }
-            }
-
-            // Mouse move — update hover cell.
-            if (const auto* mm = event->getIf<sf::Event::MouseMoved>()) {
-                auto [r, c] = pixelToCell(mm->position);
-                hoverRow_ = r;
-                hoverCol_ = c;
-            }
-        }
-
-        // ── Redraw with hover preview ───────────────────────────────
-        window_.clear(kBackground);
-        drawBoard(board);
-        drawInfoPanel(board);
-        window_.display();
-    }
-
-    windowClosed_ = true;
-    return {-1, -1};
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// Renderer interface: showResult
-// ═══════════════════════════════════════════════════════════════════════════
-
-void SFMLRenderer::showResult(const std::string& message) {
-    resultMessage_ = message;
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// Renderer interface: shouldClose
-// ═══════════════════════════════════════════════════════════════════════════
 
 bool SFMLRenderer::shouldClose() const {
     return windowClosed_;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// Public helpers
-// ═══════════════════════════════════════════════════════════════════════════
+void SFMLRenderer::showResult(const std::string& message) {
+    resultMessage_ = message;
+}
 
-void SFMLRenderer::setCurrentPlayer(char symbol) { currentPlayer_ = symbol; }
-char SFMLRenderer::getCurrentPlayer() const       { return currentPlayer_;  }
-
-void SFMLRenderer::addScore(char result) {
-    if (result == 'X')      ++scores_[0];
-    else if (result == 'O') ++scores_[1];
-    else                    ++scores_[2];   // Draw
+void SFMLRenderer::addScore(ttt::GameStatus result) {
+    if (result == ttt::GameStatus::XWins)      ++scores_[0];
+    else if (result == ttt::GameStatus::OWins)  ++scores_[1];
+    else if (result == ttt::GameStatus::Draw)   ++scores_[2];
 }
 
 void SFMLRenderer::resetScores() { scores_ = {0, 0, 0}; }
@@ -173,42 +75,108 @@ bool SFMLRenderer::wasNewGameRequested() {
 
 sf::RenderWindow& SFMLRenderer::getWindow() { return window_; }
 
-void SFMLRenderer::inferCurrentPlayer(const Board& board) {
-    int xCount = 0, oCount = 0;
-    for (int r = 0; r < boardSize_; ++r) {
-        for (int c = 0; c < boardSize_; ++c) {
-            if (board.getCell(r, c) == 'X') ++xCount;
-            else if (board.getCell(r, c) == 'O') ++oCount;
-        }
+// ═══════════════════════════════════════════════════════════════════════════
+// Layout calculation
+// ═══════════════════════════════════════════════════════════════════════════
+
+void SFMLRenderer::recalculateLayout() {
+    constexpr float kPad = 30.f;
+    const int boardSize = game_->board().size();
+
+    const float availW = WINDOW_W * 0.62f - 2.f * kPad;
+    const float availH = WINDOW_H        - 2.f * kPad;
+    boardPixelSize_    = std::min(availW, availH);
+    cellSize_          = boardPixelSize_ / static_cast<float>(boardSize);
+
+    boardOriginX_ = kPad;
+    boardOriginY_ = (WINDOW_H - boardPixelSize_) / 2.f;
+
+    panelX_ = boardOriginX_ + boardPixelSize_ + kPad;
+    panelW_ = WINDOW_W - panelX_ - kPad;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// render
+// ═══════════════════════════════════════════════════════════════════════════
+
+void SFMLRenderer::render() {
+    window_.clear(kBackground);
+    drawBoard();
+    drawInfoPanel();
+
+    if (!resultMessage_.empty()) {
+        drawResultOverlay();
     }
-    // X always goes first, so if counts are equal it's X's turn.
-    currentPlayer_ = (xCount <= oCount) ? 'X' : 'O';
+
+    window_.display();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// getHumanMove
+// ═══════════════════════════════════════════════════════════════════════════
+
+ttt::Move SFMLRenderer::getHumanMove() {
+    while (window_.isOpen()) {
+        while (const auto event = window_.pollEvent()) {
+            if (event->is<sf::Event::Closed>()) {
+                window_.close();
+                windowClosed_ = true;
+                return {};
+            }
+
+            if (const auto* mb = event->getIf<sf::Event::MouseButtonPressed>()) {
+                // Check "New Game" button first.
+                if (isInsideNewGameButton(mb->position)) {
+                    newGameRequested_ = true;
+                    return {};
+                }
+
+                auto [row, col] = pixelToCell(mb->position);
+                if (row >= 0 && col >= 0 &&
+                    game_->board().isEmpty(row, col)) {
+                    return {row, col};
+                }
+            }
+
+            if (const auto* mm = event->getIf<sf::Event::MouseMoved>()) {
+                auto [r, c] = pixelToCell(mm->position);
+                hoverRow_ = r;
+                hoverCol_ = c;
+            }
+        }
+
+        // Redraw with hover preview
+        window_.clear(kBackground);
+        drawBoard();
+        drawInfoPanel();
+        window_.display();
+    }
+
+    windowClosed_ = true;
+    return {};
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Board drawing
 // ═══════════════════════════════════════════════════════════════════════════
 
-void SFMLRenderer::drawBoard(const Board& board) {
-    // Background rectangle for the board area.
+void SFMLRenderer::drawBoard() {
     sf::RectangleShape bg(sf::Vector2f{boardPixelSize_, boardPixelSize_});
     bg.setPosition(sf::Vector2f{boardOriginX_, boardOriginY_});
     bg.setFillColor(sf::Color{0x0f, 0x0f, 0x23});
     window_.draw(bg);
 
     drawGridLines();
-    drawMarks(board);
+    drawMarks();
     drawHoverPreview();
-    drawWinHighlight(board);
+    drawWinHighlight();
 }
-
-// ── Grid lines ──────────────────────────────────────────────────────────
 
 void SFMLRenderer::drawGridLines() {
     constexpr float kLineThickness = 3.f;
+    const int boardSize = game_->board().size();
 
-    // Vertical lines.
-    for (int i = 1; i < boardSize_; ++i) {
+    for (int i = 1; i < boardSize; ++i) {
         float x = boardOriginX_ + i * cellSize_;
         sf::RectangleShape line(sf::Vector2f{kLineThickness, boardPixelSize_});
         line.setPosition(sf::Vector2f{x - kLineThickness / 2.f, boardOriginY_});
@@ -216,8 +184,7 @@ void SFMLRenderer::drawGridLines() {
         window_.draw(line);
     }
 
-    // Horizontal lines.
-    for (int i = 1; i < boardSize_; ++i) {
+    for (int i = 1; i < boardSize; ++i) {
         float y = boardOriginY_ + i * cellSize_;
         sf::RectangleShape line(sf::Vector2f{boardPixelSize_, kLineThickness});
         line.setPosition(sf::Vector2f{boardOriginX_, y - kLineThickness / 2.f});
@@ -226,19 +193,20 @@ void SFMLRenderer::drawGridLines() {
     }
 }
 
-// ── Marks (X and O) ────────────────────────────────────────────────────
+void SFMLRenderer::drawMarks() {
+    const auto& board = game_->board();
+    const int boardSize = board.size();
 
-void SFMLRenderer::drawMarks(const Board& board) {
-    for (int r = 0; r < boardSize_; ++r) {
-        for (int c = 0; c < boardSize_; ++c) {
-            const char cell = board.getCell(r, c);
-            if (cell == '.') continue;
+    for (int r = 0; r < boardSize; ++r) {
+        for (int c = 0; c < boardSize; ++c) {
+            ttt::Cell cell = board.at(r, c);
+            if (cell == ttt::Cell::Empty) continue;
 
             const float cx = boardOriginX_ + (c + 0.5f) * cellSize_;
             const float cy = boardOriginY_ + (r + 0.5f) * cellSize_;
-            const float sz = cellSize_ * 0.65f;  // symbol occupies ~65 % of cell
+            const float sz = cellSize_ * 0.65f;
 
-            if (cell == 'X') {
+            if (cell == ttt::Cell::X) {
                 drawX(cx, cy, sz, kXColor);
             } else {
                 drawO(cx, cy, sz, kOColor);
@@ -247,11 +215,8 @@ void SFMLRenderer::drawMarks(const Board& board) {
     }
 }
 
-// ── X drawing (two crossed thick lines) ─────────────────────────────────
-
 void SFMLRenderer::drawX(float cx, float cy, float size,
                           const sf::Color& color, float thickness) {
-    // Compute the length of each diagonal bar.
     const float diagLen = std::sqrt(2.f) * size;
 
     for (int sign : {-1, 1}) {
@@ -264,8 +229,6 @@ void SFMLRenderer::drawX(float cx, float cy, float size,
     }
 }
 
-// ── O drawing (circle outline) ──────────────────────────────────────────
-
 void SFMLRenderer::drawO(float cx, float cy, float size,
                           const sf::Color& color, float thickness) {
     const float radius = size / 2.f;
@@ -276,16 +239,15 @@ void SFMLRenderer::drawO(float cx, float cy, float size,
     circle.setFillColor(sf::Color::Transparent);
     circle.setOutlineColor(color);
     circle.setOutlineThickness(thickness);
-    circle.setPointCount(64);   // smooth circle
+    circle.setPointCount(64);
     window_.draw(circle);
 }
 
-// ── Hover preview ───────────────────────────────────────────────────────
-
 void SFMLRenderer::drawHoverPreview() {
     if (hoverRow_ < 0 || hoverCol_ < 0) return;
+    if (game_->isOver()) return;
+    if (!game_->board().isEmpty(hoverRow_, hoverCol_)) return;
 
-    // Draw a faint background highlight on the hovered cell.
     const float x = boardOriginX_ + hoverCol_ * cellSize_;
     const float y = boardOriginY_ + hoverRow_ * cellSize_;
 
@@ -294,34 +256,28 @@ void SFMLRenderer::drawHoverPreview() {
     highlight.setFillColor(kHover);
     window_.draw(highlight);
 
-    // Draw a faint preview symbol.
     const float cx = x + cellSize_ / 2.f;
     const float cy = y + cellSize_ / 2.f;
     const float sz = cellSize_ * 0.65f;
 
-    sf::Color faint = (currentPlayer_ == 'X') ? kXColor : kOColor;
-    faint.a = 60;   // very translucent
+    ttt::Cell currentPlayer = game_->currentPlayer();
+    sf::Color faint = (currentPlayer == ttt::Cell::X) ? kXColor : kOColor;
+    faint.a = 60;
 
-    if (currentPlayer_ == 'X') {
+    if (currentPlayer == ttt::Cell::X) {
         drawX(cx, cy, sz, faint, 4.f);
     } else {
         drawO(cx, cy, sz, faint, 3.f);
     }
 }
 
-// ── Win highlight ───────────────────────────────────────────────────────
+void SFMLRenderer::drawWinHighlight() {
+    const auto& winLine = game_->winningLine();
+    if (winLine.empty()) return;
 
-void SFMLRenderer::drawWinHighlight(const Board& board) {
-    // Determine if there is a winner.
-    char winner = '.';
-    if (board.checkWin('X'))      winner = 'X';
-    else if (board.checkWin('O')) winner = 'O';
-    if (winner == '.') return;
-
-    const auto cells = board.getWinningLine(winner);
-    for (const auto& [r, c] : cells) {
-        const float x = boardOriginX_ + c * cellSize_;
-        const float y = boardOriginY_ + r * cellSize_;
+    for (const auto& move : winLine) {
+        const float x = boardOriginX_ + move.col * cellSize_;
+        const float y = boardOriginY_ + move.row * cellSize_;
 
         sf::RectangleShape glow(sf::Vector2f{cellSize_, cellSize_});
         glow.setPosition(sf::Vector2f{x, y});
@@ -331,15 +287,14 @@ void SFMLRenderer::drawWinHighlight(const Board& board) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Info panel drawing
+// Info panel
 // ═══════════════════════════════════════════════════════════════════════════
 
-void SFMLRenderer::drawInfoPanel(const Board& board) {
+void SFMLRenderer::drawInfoPanel() {
     constexpr float kPad     = 15.f;
     const float panelH       = static_cast<float>(WINDOW_H) - 60.f;
     const float panelY       = 30.f;
 
-    // Panel background.
     sf::RectangleShape panelBg(sf::Vector2f{panelW_, panelH});
     panelBg.setPosition(sf::Vector2f{panelX_, panelY});
     panelBg.setFillColor(kPanelBg);
@@ -351,7 +306,6 @@ void SFMLRenderer::drawInfoPanel(const Board& board) {
     {
         sf::Text title(font_, "Tic-Tac-Toe", 26);
         title.setFillColor(kText);
-        // Centre horizontally in panel.
         const float tw = title.getLocalBounds().size.x;
         title.setPosition(sf::Vector2f{panelX_ + (panelW_ - tw) / 2.f, curY});
         window_.draw(title);
@@ -375,10 +329,10 @@ void SFMLRenderer::drawInfoPanel(const Board& board) {
         window_.draw(turnLabel);
         curY += 28.f;
 
-        // Draw the symbol in its colour.
-        std::string sym(1, currentPlayer_);
+        ttt::Cell currentPlayer = game_->currentPlayer();
+        std::string sym = (currentPlayer == ttt::Cell::X) ? "X" : "O";
         sf::Text turnSym(font_, sym, 40);
-        turnSym.setFillColor(currentPlayer_ == 'X' ? kXColor : kOColor);
+        turnSym.setFillColor(currentPlayer == ttt::Cell::X ? kXColor : kOColor);
         const float sw = turnSym.getLocalBounds().size.x;
         turnSym.setPosition(sf::Vector2f{panelX_ + (panelW_ - sw) / 2.f, curY});
         window_.draw(turnSym);
@@ -388,10 +342,12 @@ void SFMLRenderer::drawInfoPanel(const Board& board) {
     // ── Game status ─────────────────────────────────────────────────
     {
         std::string status;
-        if (board.checkWin('X'))      status = "X wins!";
-        else if (board.checkWin('O')) status = "O wins!";
-        else if (board.isFull())      status = "It's a draw!";
-        else                          status = "Game in progress";
+        switch (game_->status()) {
+            case ttt::GameStatus::XWins:      status = "X wins!"; break;
+            case ttt::GameStatus::OWins:      status = "O wins!"; break;
+            case ttt::GameStatus::Draw:       status = "It's a draw!"; break;
+            case ttt::GameStatus::InProgress: status = "Game in progress"; break;
+        }
 
         sf::Text statusText(font_, status, 18);
         statusText.setFillColor(kText);
@@ -454,8 +410,6 @@ void SFMLRenderer::drawInfoPanel(const Board& board) {
     }
 }
 
-// ── Generic button ──────────────────────────────────────────────────────
-
 void SFMLRenderer::drawButton(float x, float y, float w, float h,
                                const std::string& label, const sf::Color& bg) {
     sf::RectangleShape btn(sf::Vector2f{w, h});
@@ -477,13 +431,11 @@ void SFMLRenderer::drawButton(float x, float y, float w, float h,
 // ═══════════════════════════════════════════════════════════════════════════
 
 void SFMLRenderer::drawResultOverlay() {
-    // Semi-transparent dark overlay.
     sf::RectangleShape overlay(sf::Vector2f{
         static_cast<float>(WINDOW_W), static_cast<float>(WINDOW_H)});
     overlay.setFillColor(sf::Color{0, 0, 0, 160});
     window_.draw(overlay);
 
-    // Result text — large, centred.
     sf::Text msg(font_, resultMessage_, 42);
     msg.setFillColor(kWinGlow);
     const float tw = msg.getLocalBounds().size.x;
@@ -492,7 +444,6 @@ void SFMLRenderer::drawResultOverlay() {
                                  (WINDOW_H - th) / 2.f - 40.f});
     window_.draw(msg);
 
-    // Sub-text.
     sf::Text sub(font_, "Click 'New Game' to play again", 18);
     sub.setFillColor(kText);
     const float sw = sub.getLocalBounds().size.x;
@@ -508,8 +459,8 @@ void SFMLRenderer::drawResultOverlay() {
 std::pair<int, int> SFMLRenderer::pixelToCell(sf::Vector2i pixel) const {
     const float px = static_cast<float>(pixel.x);
     const float py = static_cast<float>(pixel.y);
+    const int boardSize = game_->board().size();
 
-    // Check if inside the board area.
     if (px < boardOriginX_ || py < boardOriginY_ ||
         px >= boardOriginX_ + boardPixelSize_ ||
         py >= boardOriginY_ + boardPixelSize_) {
@@ -519,8 +470,7 @@ std::pair<int, int> SFMLRenderer::pixelToCell(sf::Vector2i pixel) const {
     const int col = static_cast<int>((px - boardOriginX_) / cellSize_);
     const int row = static_cast<int>((py - boardOriginY_) / cellSize_);
 
-    // Clamp to valid range (safety).
-    if (row < 0 || row >= boardSize_ || col < 0 || col >= boardSize_) {
+    if (row < 0 || row >= boardSize || col < 0 || col >= boardSize) {
         return {-1, -1};
     }
 
