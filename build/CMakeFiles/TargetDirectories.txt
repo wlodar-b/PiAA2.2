@@ -1,5 +1,0 @@
-C:/Users/Bartek/.gemini/antigravity/scratch/tic-tac-toe/build/CMakeFiles/ttt_core.dir
-C:/Users/Bartek/.gemini/antigravity/scratch/tic-tac-toe/build/CMakeFiles/tictactoe_console.dir
-C:/Users/Bartek/.gemini/antigravity/scratch/tic-tac-toe/build/CMakeFiles/tictactoe_gui.dir
-C:/Users/Bartek/.gemini/antigravity/scratch/tic-tac-toe/build/CMakeFiles/edit_cache.dir
-C:/Users/Bartek/.gemini/antigravity/scratch/tic-tac-toe/build/CMakeFiles/rebuild_cache.dir

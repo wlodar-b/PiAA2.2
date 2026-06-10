@@ -1,2 +1,0 @@
-C:\msys64\ucrt64\bin\ar.exe qc libttt_core.a CMakeFiles/ttt_core.dir/src/Board.cpp.obj CMakeFiles/ttt_core.dir/src/GameRules.cpp.obj CMakeFiles/ttt_core.dir/src/Game.cpp.obj CMakeFiles/ttt_core.dir/src/AIPlayer.cpp.obj
-C:\msys64\ucrt64\bin\ranlib.exe libttt_core.a
