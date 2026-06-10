@@ -1,49 +1,59 @@
-# Raport z Projektu: Rozszerzona Gra Kółko i Krzyżyk z AI
+# Projekt – Kółko i krzyżyk z AI (MinMax)
 
-**Przedmiot:** Projektowanie i Analiza Algorytmów 2
+## Opis projektu
 
-## 1. Opis Projektu
+Projekt to gra w kółko i krzyżyk z przeciwnikiem sterowanym przez sztuczną inteligencję. W przeciwieństwie do zwykłej gry 3x3, możemy tu ustalić **własny rozmiar planszy** (np. od 3x3 do 15x15) oraz **liczbę znaków w rzędzie** potrzebną do wygranej.
 
-Projekt to zaawansowana wersja klasycznej gry "Kółko i Krzyżyk" zrealizowana w języku C++ z interfejsem graficznym (biblioteka SFML 3). W przeciwieństwie do tradycyjnej wersji 3x3, aplikacja pozwala na rozgrywkę na planszach o rozmiarach od 3x3 do 15x15, ze zmienną długością linii niezbędną do wygranej (od 3 do rozmiaru planszy).  
-Głównym założeniem algorytmicznym projektu była implementacja niepokonanego przeciwnika komputerowego (AI) operującego w warunkach silnie rozgałęzionego drzewa decyzyjnego dla dużych plansz.
+AI wykorzystuje algorytm **MinMax z odcinaniem alfa-beta**. Logika gry jest w pełni oddzielona od interfejsu graficznego. Interfejs graficzny został napisany przy użyciu biblioteki **SFML 3**. 
 
-## 2. Architektura Oprogramowania
+## Struktura projektu
 
-Zgodnie z dobrymi praktykami programowania obiektowego, interfejs graficzny został całkowicie oddzielony od logiki gry, a całość zaimplementowano w dedykowanej przestrzeni nazw `ttt`.
+Projekt składa się głównie ze standardowego kodu C++ z bardzo minimalistycznym plikiem CMake.
 
-*   **`Board` (Plansza):** Utrzymuje stan siatki gry w jednowymiarowej strukturze wektora, implementując szybkie operacje wstawiania i modyfikowania. Przechowuje zmienną `filled_` śledzącą liczbę zajętych komórek (czas $O(1)$ dla sprawdzenia remisu).
-*   **`GameRules` (Zasady Gry):** Klasa agregująca reguły weryfikujące czy w zadanym układzie nastąpiła wygrana. Używa zoptymalizowanej heurystyki `hasWonAt()`, analizującej wyłącznie linie promieniście przechodzące przez nowo postawiony znak, co drastycznie redukuje liczbę sprawdzanych wierszy.
-*   **`Game` (Kontroler):** Pętla decyzyjna zarządzająca turami, aktualizacją stanu i łączeniem obiektu *Zasad* z *Planszą*.
-*   **`Player` (Klasa Bazowa):** Abstrakcja pozwalająca polimorficznie wstrzykiwać do silnika gry graczy sterowanych z zewnątrz (`HumanPlayer`) oraz sterowanych algorytmicznie (`AIPlayer`).
-*   **`SFMLRenderer`:** Silnik interfejsu graficznego. Realizuje renderowanie elementów, responsywność okna, efekt najeżdżania na przyciski (`hover`) oraz walidację kliknięć, tłumacząc logikę koordynat graficznych na abstrakcyjną siatkę pól silnika.
+- `CMakeLists.txt` – konfiguracja całego projektu (zajmuje tylko kilkadziesiąt linijek, łączy SFML z kodem gry).
+- `src/` – kod w czystym C++.
+  - `Board.cpp` / `Board.hpp` – stan planszy.
+  - `GameRules.cpp` / `GameRules.hpp` – wykrywanie wygranej.
+  - `Game.cpp` / `Game.hpp` – łączy zasady z planszą i zarządza turami.
+  - `AIPlayer.cpp` / `AIPlayer.hpp` – komputer (MinMax i heurystyka).
+  - `SFMLRenderer.cpp` – plik rysujący grafikę.
+  - `main.cpp` / `console_main.cpp` – uruchamianie aplikacji.
 
-## 3. Zastosowane Algorytmy (Logika AI)
+## Jak działa AI
 
-Sztuczna Inteligencja oparta jest na algorytmie **Minimax z optymalizacją odcięć Alpha-Beta (Alpha-Beta Pruning)**, wspartym skomplikowaną **Heurystyką Oceny Planszy**.
+### MinMax z odcinaniem alfa-beta
+Klasyczny algorytm szuka najlepszego ruchu dla komputera, sprawdzając możliwe odpowiedzi gracza. Ponieważ dla plansz większych niż 3x3 wszystkich kombinacji jest za dużo, zastosowano **odcinanie alfa-beta**, które pomija bezsensowne ruchy, przyspieszając myślenie.
 
-### 3.1. Optymalizacja Odcięć (Alpha-Beta Pruning)
-Klasyczny algorytm Minimax przeszukuje pełne drzewo możliwości. Dla planszy 3x3 ma to 9! ($362,880$) kombinacji. Dla plansz powyżej 4x4 pełne przeszukanie staje się niemożliwe. Zaimplementowano model Alpha-Beta Pruning, który odrzuca te poddrzewa decyzyjne, których wynik na pewno będzie gorszy niż ten, który zagwarantowaliśmy sobie w innych zbadanych gałęziach.  
+### Heurystyka i głębokość
+Dla bardzo dużych plansz komputer nie da rady sprawdzić gry aż do samego końca. Z tego powodu zatrzymuje się na pewnej głębokości i ocenia planszę **heurystycznie** (np. dostaje punkty za 2 lub 3 swoje znaki w rzędzie, a traci punkty, gdy widzi znaki gracza).
 
-Algorytm zawsze faworyzuje szybsze wygrane (poprzez stosowanie kary odległościowej od głębokości: `score = kWinScore - depth`) oraz wolniejsze porażki, przez co staje się idealnie wyważony. W wariancie 15x15 ze względu na ogromny współczynnik rozgałęzienia, wprowadzono limit głębokości przeszukiwania dostosowujący się dynamicznie (funkcja `effectiveDepth`).
+### Optymalizacja ruchów
+Aby komputer nie tracił czasu na sprawdzanie ruchów na drugim końcu pustej planszy, analizuje tylko te pola, które sąsiadują z już postawionymi znakami.
 
-### 3.2. Funkcja Heurystyczna
-Ponieważ na dużych planszach drzewo zostaje przerwane, AI nigdy nie widzi "końca gry" podczas wyliczania ruchów. Konieczne było stworzenie bardzo celnej funkcji ewaluującej układ znaków na siatce: `AIPlayer::evaluate()`.
+## Pobieranie i uruchamianie
 
-*   **Zasada działania:** System "przesuwnego okna" (o wielkości *winLength*). Okno przesuwa się w pionie, poziomie i obu skosach na całej planszy.
-*   Jeżeli w danym wycinku "okna" obecne są pionki OBU graczy - jest to fragment *martwy* (nikt już tam nie utworzy zwycięskiej linii). Wycinek otrzymuje wynik $0$.
-*   Jeżeli w oknie obecne są tylko pionki nasze, zwiększamy wynik dodatnio w sposób **wykładniczy** zależnie od zagęszczenia tych pionków (np. 1 pionek to $1$, 2 pionki to $10$, 3 pionki to $1000$).
-*   Jeżeli w oknie obecne są tylko pionki przeciwnika - obniżamy wynik negatywnie w ten sam wykładniczy sposób.
+Projekt kompilujemy za pomocą systemu **CMake**. Oczekiwany kompilator to `g++` obsługujący standard C++17 oraz zainstalowana biblioteka SFML 3 (najlepiej środowisko MSYS2 MinGW/UCRT64).
 
-Dzięki temu algorytm skupia się na wydłużaniu swoich sekwencji oraz brutalnym blokowaniu sekwencji przeciwnika (traktując je jako zagrożenie najwyższego stopnia).
+**1. Pobranie projektu z GitHuba:**
+```bash
+git clone <TUTAJ_WKLEJ_LINK_DO_SWOJEGO_REPOZYTORIUM>
+cd <NAZWA_PABRANEGO_FOLDERU>
+```
 
-### 3.3. Optymalizacja Generowania Pól (Candidate Moves)
-Na starcie pustej dużej planszy, wyliczenie pełnego Minimaxa mijałoby się z celem. 
-Wykorzystujemy tu własną optymalizację węzłów: funkcja zwracająca możliwe ruchy dla AI iteruje wybiórczo. Dla pustej planszy podaje ona automatycznie jedynie środek. Gdy gra wejdzie w fazę interakcji, algorytm nie bierze pod uwagę wszystkich pustych pól, a **wyłącznie puste pola mające przynajmniej jednego niepustego sąsiada w 8 kierunkach wokół nich**.
+**2. Budowanie projektu:**
+Będąc w folderze projektu, wygeneruj pliki kompilacji i zbuduj aplikację:
+```bash
+cmake -B build
+cmake --build build -j8
+```
 
-Zawęża to współczynnik rozgałęzienia (branching factor) drastycznie i przyspiesza wyliczenia rzędu od kliku do kilkuset razy w zależności od rozmiaru mapy.
+**3. Uruchomienie gry graficznej:**
+Po pomyślnym zbudowaniu wystarczy odpalić plik wykonywalny:
+```bash
+.\build\bin\tictactoe_gui.exe
+```
 
-## 4. Wykorzystane Narzędzia i Technologie
-*   **Język:** C++17
-*   **Kompilator:** MinGW (g++) używający pełnego restrykcyjnego zestawu ostrzeżeń (`-Wall`, `-Wextra`, `-Wpedantic`) w celu zapewnienia absolutnej stabilności pamięci i typów.
-*   **GUI:** SFML 3.0.2 zrealizowane w natywnym akcelerowanym oknie systemowym.
-*   **System budowy:** CMake używany jako warstwa uogólnienia do łatwej budowy na środowiskach MacOS, Linux oraz Windows.
+## Wykorzystane technologie
+- **C++17** (tylko standardowe biblioteki)
+- **SFML 3** (do wyświetlania okna, przycisków i planszy)
+- **CMake** (minimalny plik konfiguracyjny)
