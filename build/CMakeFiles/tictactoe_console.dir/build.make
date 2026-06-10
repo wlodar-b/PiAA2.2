@@ -76,15 +76,15 @@ CMakeFiles/tictactoe_console.dir/src/console_main.cpp.obj: CMakeFiles/tictactoe_
 CMakeFiles/tictactoe_console.dir/src/console_main.cpp.obj: C:/Users/Bartek/.gemini/antigravity/scratch/tic-tac-toe/src/console_main.cpp
 CMakeFiles/tictactoe_console.dir/src/console_main.cpp.obj: CMakeFiles/tictactoe_console.dir/compiler_depend.ts
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=C:\Users\Bartek\.gemini\antigravity\scratch\tic-tac-toe\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/tictactoe_console.dir/src/console_main.cpp.obj"
-	C:\msys64\ucrt64\bin\c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/tictactoe_console.dir/src/console_main.cpp.obj -MF CMakeFiles\tictactoe_console.dir\src\console_main.cpp.obj.d -o CMakeFiles\tictactoe_console.dir\src\console_main.cpp.obj -c C:\Users\Bartek\.gemini\antigravity\scratch\tic-tac-toe\src\console_main.cpp
+	C:\msys64\ucrt64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/tictactoe_console.dir/src/console_main.cpp.obj -MF CMakeFiles\tictactoe_console.dir\src\console_main.cpp.obj.d -o CMakeFiles\tictactoe_console.dir\src\console_main.cpp.obj -c C:\Users\Bartek\.gemini\antigravity\scratch\tic-tac-toe\src\console_main.cpp
 
 CMakeFiles/tictactoe_console.dir/src/console_main.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/tictactoe_console.dir/src/console_main.cpp.i"
-	C:\msys64\ucrt64\bin\c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E C:\Users\Bartek\.gemini\antigravity\scratch\tic-tac-toe\src\console_main.cpp > CMakeFiles\tictactoe_console.dir\src\console_main.cpp.i
+	C:\msys64\ucrt64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E C:\Users\Bartek\.gemini\antigravity\scratch\tic-tac-toe\src\console_main.cpp > CMakeFiles\tictactoe_console.dir\src\console_main.cpp.i
 
 CMakeFiles/tictactoe_console.dir/src/console_main.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/tictactoe_console.dir/src/console_main.cpp.s"
-	C:\msys64\ucrt64\bin\c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S C:\Users\Bartek\.gemini\antigravity\scratch\tic-tac-toe\src\console_main.cpp -o CMakeFiles\tictactoe_console.dir\src\console_main.cpp.s
+	C:\msys64\ucrt64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S C:\Users\Bartek\.gemini\antigravity\scratch\tic-tac-toe\src\console_main.cpp -o CMakeFiles\tictactoe_console.dir\src\console_main.cpp.s
 
 # Object files for target tictactoe_console
 tictactoe_console_OBJECTS = \

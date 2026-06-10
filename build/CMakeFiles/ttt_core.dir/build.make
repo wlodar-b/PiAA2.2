@@ -76,60 +76,60 @@ CMakeFiles/ttt_core.dir/src/Board.cpp.obj: CMakeFiles/ttt_core.dir/includes_CXX.
 CMakeFiles/ttt_core.dir/src/Board.cpp.obj: C:/Users/Bartek/.gemini/antigravity/scratch/tic-tac-toe/src/Board.cpp
 CMakeFiles/ttt_core.dir/src/Board.cpp.obj: CMakeFiles/ttt_core.dir/compiler_depend.ts
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=C:\Users\Bartek\.gemini\antigravity\scratch\tic-tac-toe\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/ttt_core.dir/src/Board.cpp.obj"
-	C:\msys64\ucrt64\bin\c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/ttt_core.dir/src/Board.cpp.obj -MF CMakeFiles\ttt_core.dir\src\Board.cpp.obj.d -o CMakeFiles\ttt_core.dir\src\Board.cpp.obj -c C:\Users\Bartek\.gemini\antigravity\scratch\tic-tac-toe\src\Board.cpp
+	C:\msys64\ucrt64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/ttt_core.dir/src/Board.cpp.obj -MF CMakeFiles\ttt_core.dir\src\Board.cpp.obj.d -o CMakeFiles\ttt_core.dir\src\Board.cpp.obj -c C:\Users\Bartek\.gemini\antigravity\scratch\tic-tac-toe\src\Board.cpp
 
 CMakeFiles/ttt_core.dir/src/Board.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/ttt_core.dir/src/Board.cpp.i"
-	C:\msys64\ucrt64\bin\c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E C:\Users\Bartek\.gemini\antigravity\scratch\tic-tac-toe\src\Board.cpp > CMakeFiles\ttt_core.dir\src\Board.cpp.i
+	C:\msys64\ucrt64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E C:\Users\Bartek\.gemini\antigravity\scratch\tic-tac-toe\src\Board.cpp > CMakeFiles\ttt_core.dir\src\Board.cpp.i
 
 CMakeFiles/ttt_core.dir/src/Board.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/ttt_core.dir/src/Board.cpp.s"
-	C:\msys64\ucrt64\bin\c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S C:\Users\Bartek\.gemini\antigravity\scratch\tic-tac-toe\src\Board.cpp -o CMakeFiles\ttt_core.dir\src\Board.cpp.s
+	C:\msys64\ucrt64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S C:\Users\Bartek\.gemini\antigravity\scratch\tic-tac-toe\src\Board.cpp -o CMakeFiles\ttt_core.dir\src\Board.cpp.s
 
 CMakeFiles/ttt_core.dir/src/GameRules.cpp.obj: CMakeFiles/ttt_core.dir/flags.make
 CMakeFiles/ttt_core.dir/src/GameRules.cpp.obj: CMakeFiles/ttt_core.dir/includes_CXX.rsp
 CMakeFiles/ttt_core.dir/src/GameRules.cpp.obj: C:/Users/Bartek/.gemini/antigravity/scratch/tic-tac-toe/src/GameRules.cpp
 CMakeFiles/ttt_core.dir/src/GameRules.cpp.obj: CMakeFiles/ttt_core.dir/compiler_depend.ts
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=C:\Users\Bartek\.gemini\antigravity\scratch\tic-tac-toe\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/ttt_core.dir/src/GameRules.cpp.obj"
-	C:\msys64\ucrt64\bin\c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/ttt_core.dir/src/GameRules.cpp.obj -MF CMakeFiles\ttt_core.dir\src\GameRules.cpp.obj.d -o CMakeFiles\ttt_core.dir\src\GameRules.cpp.obj -c C:\Users\Bartek\.gemini\antigravity\scratch\tic-tac-toe\src\GameRules.cpp
+	C:\msys64\ucrt64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/ttt_core.dir/src/GameRules.cpp.obj -MF CMakeFiles\ttt_core.dir\src\GameRules.cpp.obj.d -o CMakeFiles\ttt_core.dir\src\GameRules.cpp.obj -c C:\Users\Bartek\.gemini\antigravity\scratch\tic-tac-toe\src\GameRules.cpp
 
 CMakeFiles/ttt_core.dir/src/GameRules.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/ttt_core.dir/src/GameRules.cpp.i"
-	C:\msys64\ucrt64\bin\c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E C:\Users\Bartek\.gemini\antigravity\scratch\tic-tac-toe\src\GameRules.cpp > CMakeFiles\ttt_core.dir\src\GameRules.cpp.i
+	C:\msys64\ucrt64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E C:\Users\Bartek\.gemini\antigravity\scratch\tic-tac-toe\src\GameRules.cpp > CMakeFiles\ttt_core.dir\src\GameRules.cpp.i
 
 CMakeFiles/ttt_core.dir/src/GameRules.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/ttt_core.dir/src/GameRules.cpp.s"
-	C:\msys64\ucrt64\bin\c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S C:\Users\Bartek\.gemini\antigravity\scratch\tic-tac-toe\src\GameRules.cpp -o CMakeFiles\ttt_core.dir\src\GameRules.cpp.s
+	C:\msys64\ucrt64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S C:\Users\Bartek\.gemini\antigravity\scratch\tic-tac-toe\src\GameRules.cpp -o CMakeFiles\ttt_core.dir\src\GameRules.cpp.s
 
 CMakeFiles/ttt_core.dir/src/Game.cpp.obj: CMakeFiles/ttt_core.dir/flags.make
 CMakeFiles/ttt_core.dir/src/Game.cpp.obj: CMakeFiles/ttt_core.dir/includes_CXX.rsp
 CMakeFiles/ttt_core.dir/src/Game.cpp.obj: C:/Users/Bartek/.gemini/antigravity/scratch/tic-tac-toe/src/Game.cpp
 CMakeFiles/ttt_core.dir/src/Game.cpp.obj: CMakeFiles/ttt_core.dir/compiler_depend.ts
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=C:\Users\Bartek\.gemini\antigravity\scratch\tic-tac-toe\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/ttt_core.dir/src/Game.cpp.obj"
-	C:\msys64\ucrt64\bin\c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/ttt_core.dir/src/Game.cpp.obj -MF CMakeFiles\ttt_core.dir\src\Game.cpp.obj.d -o CMakeFiles\ttt_core.dir\src\Game.cpp.obj -c C:\Users\Bartek\.gemini\antigravity\scratch\tic-tac-toe\src\Game.cpp
+	C:\msys64\ucrt64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/ttt_core.dir/src/Game.cpp.obj -MF CMakeFiles\ttt_core.dir\src\Game.cpp.obj.d -o CMakeFiles\ttt_core.dir\src\Game.cpp.obj -c C:\Users\Bartek\.gemini\antigravity\scratch\tic-tac-toe\src\Game.cpp
 
 CMakeFiles/ttt_core.dir/src/Game.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/ttt_core.dir/src/Game.cpp.i"
-	C:\msys64\ucrt64\bin\c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E C:\Users\Bartek\.gemini\antigravity\scratch\tic-tac-toe\src\Game.cpp > CMakeFiles\ttt_core.dir\src\Game.cpp.i
+	C:\msys64\ucrt64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E C:\Users\Bartek\.gemini\antigravity\scratch\tic-tac-toe\src\Game.cpp > CMakeFiles\ttt_core.dir\src\Game.cpp.i
 
 CMakeFiles/ttt_core.dir/src/Game.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/ttt_core.dir/src/Game.cpp.s"
-	C:\msys64\ucrt64\bin\c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S C:\Users\Bartek\.gemini\antigravity\scratch\tic-tac-toe\src\Game.cpp -o CMakeFiles\ttt_core.dir\src\Game.cpp.s
+	C:\msys64\ucrt64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S C:\Users\Bartek\.gemini\antigravity\scratch\tic-tac-toe\src\Game.cpp -o CMakeFiles\ttt_core.dir\src\Game.cpp.s
 
 CMakeFiles/ttt_core.dir/src/AIPlayer.cpp.obj: CMakeFiles/ttt_core.dir/flags.make
 CMakeFiles/ttt_core.dir/src/AIPlayer.cpp.obj: CMakeFiles/ttt_core.dir/includes_CXX.rsp
 CMakeFiles/ttt_core.dir/src/AIPlayer.cpp.obj: C:/Users/Bartek/.gemini/antigravity/scratch/tic-tac-toe/src/AIPlayer.cpp
 CMakeFiles/ttt_core.dir/src/AIPlayer.cpp.obj: CMakeFiles/ttt_core.dir/compiler_depend.ts
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=C:\Users\Bartek\.gemini\antigravity\scratch\tic-tac-toe\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/ttt_core.dir/src/AIPlayer.cpp.obj"
-	C:\msys64\ucrt64\bin\c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/ttt_core.dir/src/AIPlayer.cpp.obj -MF CMakeFiles\ttt_core.dir\src\AIPlayer.cpp.obj.d -o CMakeFiles\ttt_core.dir\src\AIPlayer.cpp.obj -c C:\Users\Bartek\.gemini\antigravity\scratch\tic-tac-toe\src\AIPlayer.cpp
+	C:\msys64\ucrt64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/ttt_core.dir/src/AIPlayer.cpp.obj -MF CMakeFiles\ttt_core.dir\src\AIPlayer.cpp.obj.d -o CMakeFiles\ttt_core.dir\src\AIPlayer.cpp.obj -c C:\Users\Bartek\.gemini\antigravity\scratch\tic-tac-toe\src\AIPlayer.cpp
 
 CMakeFiles/ttt_core.dir/src/AIPlayer.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/ttt_core.dir/src/AIPlayer.cpp.i"
-	C:\msys64\ucrt64\bin\c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E C:\Users\Bartek\.gemini\antigravity\scratch\tic-tac-toe\src\AIPlayer.cpp > CMakeFiles\ttt_core.dir\src\AIPlayer.cpp.i
+	C:\msys64\ucrt64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E C:\Users\Bartek\.gemini\antigravity\scratch\tic-tac-toe\src\AIPlayer.cpp > CMakeFiles\ttt_core.dir\src\AIPlayer.cpp.i
 
 CMakeFiles/ttt_core.dir/src/AIPlayer.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/ttt_core.dir/src/AIPlayer.cpp.s"
-	C:\msys64\ucrt64\bin\c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S C:\Users\Bartek\.gemini\antigravity\scratch\tic-tac-toe\src\AIPlayer.cpp -o CMakeFiles\ttt_core.dir\src\AIPlayer.cpp.s
+	C:\msys64\ucrt64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S C:\Users\Bartek\.gemini\antigravity\scratch\tic-tac-toe\src\AIPlayer.cpp -o CMakeFiles\ttt_core.dir\src\AIPlayer.cpp.s
 
 # Object files for target ttt_core
 ttt_core_OBJECTS = \

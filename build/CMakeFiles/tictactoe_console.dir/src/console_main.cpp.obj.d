@@ -1,6 +1,7 @@
 CMakeFiles/tictactoe_console.dir/src/console_main.cpp.obj: \
  C:\Users\Bartek\.gemini\antigravity\scratch\tic-tac-toe\src\console_main.cpp \
- C:/Users/Bartek/.gemini/antigravity/scratch/tic-tac-toe/include/Game.hpp \
+ C:/Users/Bartek/.gemini/antigravity/scratch/tic-tac-toe/include/AIPlayer.hpp \
+ C:/Users/Bartek/.gemini/antigravity/scratch/tic-tac-toe/include/Player.hpp \
  C:/Users/Bartek/.gemini/antigravity/scratch/tic-tac-toe/include/Board.hpp \
  C:/Users/Bartek/.gemini/antigravity/scratch/tic-tac-toe/include/Types.hpp \
  C:/msys64/ucrt64/include/c++/15.2.0/vector \
@@ -64,9 +65,19 @@ CMakeFiles/tictactoe_console.dir/src/console_main.cpp.obj: \
  C:/msys64/ucrt64/include/c++/15.2.0/bits/uses_allocator_args.h \
  C:/msys64/ucrt64/include/c++/15.2.0/tuple \
  C:/Users/Bartek/.gemini/antigravity/scratch/tic-tac-toe/include/GameRules.hpp \
- C:/Users/Bartek/.gemini/antigravity/scratch/tic-tac-toe/include/AIPlayer.hpp \
- C:/Users/Bartek/.gemini/antigravity/scratch/tic-tac-toe/include/Player.hpp \
- C:/Users/Bartek/.gemini/antigravity/scratch/tic-tac-toe/include/HumanPlayer.hpp \
+ C:/Users/Bartek/.gemini/antigravity/scratch/tic-tac-toe/include/Game.hpp \
+ C:/msys64/ucrt64/include/c++/15.2.0/cstdlib \
+ C:/msys64/ucrt64/include/stdlib.h \
+ C:/msys64/ucrt64/include/corecrt_wstdlib.h \
+ C:/msys64/ucrt64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/limits.h \
+ C:/msys64/ucrt64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/syslimits.h \
+ C:/msys64/ucrt64/include/limits.h \
+ C:/msys64/ucrt64/include/sec_api/stdlib_s.h \
+ C:/msys64/ucrt64/include/c++/15.2.0/stdlib.h \
+ C:/msys64/ucrt64/include/malloc.h \
+ C:/msys64/ucrt64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/mm_malloc.h \
+ C:/msys64/ucrt64/include/errno.h \
+ C:/msys64/ucrt64/include/c++/15.2.0/bits/std_abs.h \
  C:/msys64/ucrt64/include/c++/15.2.0/iostream \
  C:/msys64/ucrt64/include/c++/15.2.0/ostream \
  C:/msys64/ucrt64/include/c++/15.2.0/bits/ostream.h \
@@ -77,7 +88,6 @@ CMakeFiles/tictactoe_console.dir/src/console_main.cpp.obj: \
  C:/msys64/ucrt64/include/c++/15.2.0/cwchar \
  C:/msys64/ucrt64/include/wchar.h \
  C:/msys64/ucrt64/include/corecrt_stdio_config.h \
- C:/msys64/ucrt64/include/corecrt_wstdlib.h \
  C:/msys64/ucrt64/include/corecrt_wctype.h \
  C:/msys64/ucrt64/include/_mingw_off_t.h \
  C:/msys64/ucrt64/include/_mingw_stat64.h \
@@ -100,12 +110,10 @@ CMakeFiles/tictactoe_console.dir/src/console_main.cpp.obj: \
  C:/msys64/ucrt64/include/c++/15.2.0/ext/atomicity.h \
  C:/msys64/ucrt64/include/c++/15.2.0/x86_64-w64-mingw32/bits/gthr.h \
  C:/msys64/ucrt64/include/c++/15.2.0/x86_64-w64-mingw32/bits/gthr-default.h \
- C:/msys64/ucrt64/include/pthread.h C:/msys64/ucrt64/include/errno.h \
- C:/msys64/ucrt64/include/sys/types.h C:/msys64/ucrt64/include/process.h \
+ C:/msys64/ucrt64/include/pthread.h C:/msys64/ucrt64/include/sys/types.h \
+ C:/msys64/ucrt64/include/process.h \
  C:/msys64/ucrt64/include/corecrt_startup.h \
- C:/msys64/ucrt64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/limits.h \
- C:/msys64/ucrt64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/syslimits.h \
- C:/msys64/ucrt64/include/limits.h C:/msys64/ucrt64/include/signal.h \
+ C:/msys64/ucrt64/include/signal.h \
  C:/msys64/ucrt64/include/pthread_signal.h \
  C:/msys64/ucrt64/include/time.h C:/msys64/ucrt64/include/sys/timeb.h \
  C:/msys64/ucrt64/include/sec_api/sys/timeb_s.h \
@@ -123,13 +131,6 @@ CMakeFiles/tictactoe_console.dir/src/console_main.cpp.obj: \
  C:/msys64/ucrt64/include/c++/15.2.0/string_view \
  C:/msys64/ucrt64/include/c++/15.2.0/bits/string_view.tcc \
  C:/msys64/ucrt64/include/c++/15.2.0/ext/string_conversions.h \
- C:/msys64/ucrt64/include/c++/15.2.0/cstdlib \
- C:/msys64/ucrt64/include/stdlib.h \
- C:/msys64/ucrt64/include/sec_api/stdlib_s.h \
- C:/msys64/ucrt64/include/c++/15.2.0/stdlib.h \
- C:/msys64/ucrt64/include/malloc.h \
- C:/msys64/ucrt64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/mm_malloc.h \
- C:/msys64/ucrt64/include/c++/15.2.0/bits/std_abs.h \
  C:/msys64/ucrt64/include/c++/15.2.0/cstdio \
  C:/msys64/ucrt64/include/c++/15.2.0/cerrno \
  C:/msys64/ucrt64/include/c++/15.2.0/bits/charconv.h \
@@ -152,20 +153,4 @@ CMakeFiles/tictactoe_console.dir/src/console_main.cpp.obj: \
  C:/msys64/ucrt64/include/c++/15.2.0/bits/ostream.tcc \
  C:/msys64/ucrt64/include/c++/15.2.0/istream \
  C:/msys64/ucrt64/include/c++/15.2.0/bits/istream.tcc \
- C:/msys64/ucrt64/include/c++/15.2.0/limits \
- C:/msys64/ucrt64/include/c++/15.2.0/memory \
- C:/msys64/ucrt64/include/c++/15.2.0/bits/stl_tempbuf.h \
- C:/msys64/ucrt64/include/c++/15.2.0/bits/stl_raw_storage_iter.h \
- C:/msys64/ucrt64/include/c++/15.2.0/bits/align.h \
- C:/msys64/ucrt64/include/c++/15.2.0/bits/unique_ptr.h \
- C:/msys64/ucrt64/include/c++/15.2.0/bits/shared_ptr.h \
- C:/msys64/ucrt64/include/c++/15.2.0/bits/shared_ptr_base.h \
- C:/msys64/ucrt64/include/c++/15.2.0/bits/allocated_ptr.h \
- C:/msys64/ucrt64/include/c++/15.2.0/ext/aligned_buffer.h \
- C:/msys64/ucrt64/include/c++/15.2.0/ext/concurrence.h \
- C:/msys64/ucrt64/include/c++/15.2.0/bits/shared_ptr_atomic.h \
- C:/msys64/ucrt64/include/c++/15.2.0/bits/atomic_base.h \
- C:/msys64/ucrt64/include/c++/15.2.0/bits/atomic_lockfree_defines.h \
- C:/msys64/ucrt64/include/c++/15.2.0/backward/auto_ptr.h \
- C:/msys64/ucrt64/include/c++/15.2.0/pstl/glue_memory_defs.h \
- C:/msys64/ucrt64/include/c++/15.2.0/pstl/execution_defs.h
+ C:/msys64/ucrt64/include/c++/15.2.0/limits
